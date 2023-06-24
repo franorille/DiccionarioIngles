@@ -2,6 +2,8 @@ import tkinter
 from tkinter import *
 from tkinter import ttk
 from tkinter.ttk import Treeview, Separator
+from ConexionBBDD import *
+
 
 
 root = tkinter.Tk()
@@ -91,11 +93,11 @@ eCEspagnol2 = Entry(frameC)
 eCEspagnol2.grid(row=2,column=1)
 
 
-tCEjemplo = Text(frameC,width=50,height=5)
-tCEjemplo.grid(row=3,column=1)
+tCEjemplo = Text(frameC,width=40,height=5)
+tCEjemplo.grid(row=3,column=1,columnspan=4)
 
 scrollCEjemplo = Scrollbar(frameC,command=tEjemplo.yview)
-scrollCEjemplo.grid(row=3,column=2,sticky="nsew")
+scrollCEjemplo.grid(row=3,column=6,sticky="nsew")
 
 tCEjemplo.config(yscrollcommand=scrollCEjemplo.set)
 
@@ -119,6 +121,8 @@ bAcutalizar.grid(row=0,column=3,padx=10)
 bBorrar = Button(frameS,text="Borrar")
 bBorrar.grid(row=0,column=4,padx=10)
 
+bTest = Button(frameS,text="Test")
+bTest.grid(row=0,column=5,padx=10)
 
 
 
