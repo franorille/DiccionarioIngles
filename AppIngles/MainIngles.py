@@ -12,6 +12,7 @@ DDBB_name = "Diccionario"
 
 
 def conectar():
+    """Función llamada a través del boton conectar, para conexión a BBDD_name"""
     try:
         conexion = sqlite3.connect(DDBB_name)
         miCursor = conexion.cursor()
@@ -26,32 +27,53 @@ def conectar():
         messagebox.showinfo("Conexión", "Base de datos creada correctamente")
 
     except:
+        """Control de la excepción, en caso de intentar conectar cuando previamente ya ha sido establecida la conexión"""
         messagebox.showwarning("Conexión", "La base de datos ya había sido creada previamente")
 
 
 # ---------------- SALIR APLICACION ------------------------------
 
 def exitApp():
+    """función para salir de la aplicación, es llamada mediante el boton salir"""
     respuesta = messagebox.askquestion("Salir", "¿Quieres salir de la aplicación?")
     if respuesta == "yes":
         root.destroy()
 
 
+# ------------- funcion MENU AYUDA -------------
+
+def informacion():
+    """Información sobre las funcionalidades de los botones"""
+    messagebox.showinfo("Diccionario Inglés Español", "Conectar: Conexión a la base de datos\n\n" +
+                        "Salir: Salir del programa\n\n" +
+                        "Leer: Busca la palagra en inglés en la base de datos\n\n" +
+                        "Borrar: Borra el registro seleccionado en la tabla\n\n" +
+                        "Insertar: Inserta una nueva palabra, debe cumplimentarse al menos la palabra en ingles y en español\n\n" +
+                        "Actualizar: Modifica una palabra de la base de datos\n\n" +
+                        "Leer todos: Muestra todos las palabras de la base de datos")
+
+
 # ------------ RUD_BBDD-------------------------
 
 def read():
+    """Función para mostrar en la tabla la palabra en inglés introducida en el entry Inglés, llamado a través de boton leer"""
     conexion = sqlite3.connect(DDBB_name)
     miCursorRUD = conexion.cursor()
 
+    """Controlando que no se deje vacio el campo ingles"""
     InsertarIngles = veIngles.get().strip()
     if len(InsertarIngles) == 0:
         messagebox.showwarning("Necesario introducir campo", "No se ha especificado palabra en inglés a buscar")
 
+
     else:
+        """Muestra el registro completo si se ha introducido el campo ingles"""
+
         miCursorRUD.execute("SELECT * FROM DICCIONARIO WHERE INGLES='" + eIngles.get() + "'")
         palabras = miCursorRUD.fetchall()
         tabla.delete(*tabla.get_children())
 
+        """Introduce valores en la tabla en nivel superior. Con el índice generado en el bucle, y con el valor fila"""
         for i, fila in enumerate(palabras):
             tabla.insert(parent='', index='end', iid=i, text=i, values=fila)
 
@@ -61,6 +83,7 @@ def read():
 
 
 def leerTodos():
+    """Muestra todos los registros existentes en BBDD a través del boton leer todos"""
     conexion = sqlite3.connect(DDBB_name)
     miCursorRUD = conexion.cursor()
     miCursorRUD.execute("SELECT * FROM DICCIONARIO")
@@ -75,6 +98,7 @@ def leerTodos():
 
 
 def insertar():
+    """Inserción de nuevo registro en BBDD a través del boton insertar"""
     conexion = sqlite3.connect(DDBB_name)
     miCursorRUD = conexion.cursor()
     datos_introducidos = veIngles.get().strip(), veEspagnol.get().strip(), veEspagnol2.get().strip(), tEjemplo.get(
@@ -83,23 +107,34 @@ def insertar():
     InsertarIngles = veIngles.get()
     InsertarEspagnol = veEspagnol.get()
 
+    """Controla que campos inglés y español no estén vacios"""
     if len(InsertarIngles) == 0 or len(InsertarEspagnol) == 0:
         messagebox.showerror("Campos obligatorios", "Es necesario introducir los campos Inglés y Español")
 
     else:
-        miCursorRUD.execute("INSERT INTO DICCIONARIO VALUES(?,?,?,?)", (datos_introducidos))
-        conexion.commit()
-        messagebox.showinfo("Insertar registro", "Registro insertado con éxito")
+        try:
+            miCursorRUD.execute("INSERT INTO DICCIONARIO VALUES(?,?,?,?)", (datos_introducidos))
+            conexion.commit()
+            messagebox.showinfo("Insertar registro", "Registro insertado con éxito")
+            veIngles.set("")
+            veEspagnol.set("")
+            veEspagnol2.set("")
+            tEjemplo.delete(1.0, "end")
+        except:
+            messagebox.showerror("Error", "La palabra insertada ya existe en la base de datos, puedes actualizarla si lo deseas")
 
     conexion.close()
 
 
 def borrar():
+    """funcion para borrar el registro seleccionado en la tabla, llamado a través de boton borrar"""
     conexion = sqlite3.connect(DDBB_name)
     miCursorRUD = conexion.cursor()
 
+    """Controlando que exista un registro seleccionado para poder borrar"""
     try:
 
+        """Obtención del valor de la posición 0 (la palabra en inglés), de la tabla, para borrar ese registro en concreto castado a string"""
         clave = str(tabla.item(tabla.selection())["values"][0])
 
         respuesta = messagebox.askquestion("Borrar registro", "Estas seguro de querer borrar el registro " + clave)
@@ -116,20 +151,24 @@ def borrar():
 
 
 def actualizar():
+    """función para actualizar el registro que se introduzca en el campo inglés, llamado a través de boton actualizar"""
     conexion = sqlite3.connect(DDBB_name)
     miCursorRUD = conexion.cursor()
+
+    """Borra registros previos en la tabla para que no se muestren"""
     tabla.delete(*tabla.get_children())
-    datos_introducidos = veIngles.get().strip(), veEspagnol.get().strip(), veEspagnol2.get().strip(), tEjemplo.get(
+    datos_introducidos = veEspagnol.get().strip(), veEspagnol2.get().strip(), tEjemplo.get(
         "1.0", "end").strip()
 
     InsertarIngles = veIngles.get()
     InsertarEspagnol = veEspagnol.get()
 
+    """Controla que campos inglés y español no estén vacíos"""
     if len(InsertarIngles) == 0 or len(InsertarEspagnol) == 0:
         messagebox.showerror("Campos obligatorios", "Es necesario introducir los campos Inglés y Español")
 
     else:
-        miCursorRUD.execute("UPDATE DICCIONARIO SET INGLES=?, ESPAÑOL=?, ESPAÑOL2=?,EJEMPLO=?", (datos_introducidos))
+        miCursorRUD.execute("UPDATE DICCIONARIO SET ESPAÑOL=?, ESPAÑOL2=?,EJEMPLO=?", (datos_introducidos))
         conexion.commit()
         messagebox.showinfo("Modificacion del registro", "Registro modificado con éxito")
 
@@ -150,7 +189,7 @@ bbddMenu.add_command(label="Conectar", command=conectar)
 bbddMenu.add_command(label="Salir", command=exitApp)
 
 ayudaMenu = Menu(barraMenu, tearoff=0)
-ayudaMenu.add_command(label="Acerca de")
+ayudaMenu.add_command(label="Información", command=informacion)
 
 # Añadir items de menu creados de cada uno de los menus en el que la barra de menu,
 # debe agregar con etiqueta Archivo los items de menu creados en bbddMenu
@@ -177,7 +216,7 @@ lnEjemplo.grid(row=2, column=0, columnspan=3, padx=10, pady=10, sticky="s")
 
 img = tkinter.PhotoImage(file="imagen.png")
 lnImagen = Label(frameN, image=img)
-lnImagen.grid(padx=50, pady= 10, row=0, rowspan=5, column=7)
+lnImagen.grid(padx=50, pady=10, row=0, rowspan=5, column=7)
 
 # ---------- entries frame superior -------------------------------------
 
@@ -231,7 +270,7 @@ style.theme_use("default")  # Seleccionar el tema predeterminado
 # Crear un estilo personalizado para el encabezado
 style.configure("Custom.Treeview.Heading", background="#C8E1F0")
 
-#Creacion de tabla
+# Creacion de tabla
 tabla = ttk.Treeview(frameS, columns=("col1", "col2", "col3", "col4"), show="headings", style="Custom.Treeview")
 
 # Creación de las columnas
