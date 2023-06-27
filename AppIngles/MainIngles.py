@@ -43,8 +43,8 @@ def read():
     conexion = sqlite3.connect(DDBB_name)
     miCursorRUD = conexion.cursor()
 
-    InsertarIngles=veIngles.get().strip()
-    if len(InsertarIngles)==0:
+    InsertarIngles = veIngles.get().strip()
+    if len(InsertarIngles) == 0:
         messagebox.showwarning("Necesario introducir campo", "No se ha especificado palabra en inglés a buscar")
 
     else:
@@ -60,15 +60,30 @@ def read():
     conexion.close()
 
 
+def leerTodos():
+    conexion = sqlite3.connect(DDBB_name)
+    miCursorRUD = conexion.cursor()
+    miCursorRUD.execute("SELECT * FROM DICCIONARIO")
+    palabras = miCursorRUD.fetchall()
+    tabla.delete(*tabla.get_children())
+
+    for i, fila in enumerate(palabras):
+        tabla.insert(parent='', index='end', iid=i, text=i, values=fila)
+
+    conexion.commit()
+    conexion.close()
+
+
 def insertar():
     conexion = sqlite3.connect(DDBB_name)
     miCursorRUD = conexion.cursor()
-    datos_introducidos = veIngles.get().strip(), veEspagnol.get().strip(), veEspagnol2.get().strip(), tEjemplo.get("1.0", "end").strip()
+    datos_introducidos = veIngles.get().strip(), veEspagnol.get().strip(), veEspagnol2.get().strip(), tEjemplo.get(
+        "1.0", "end").strip()
 
-    InsertarIngles=veIngles.get()
-    InsertarEspagnol=veEspagnol.get()
+    InsertarIngles = veIngles.get()
+    InsertarEspagnol = veEspagnol.get()
 
-    if len(InsertarIngles)==0 or len(InsertarEspagnol)==0:
+    if len(InsertarIngles) == 0 or len(InsertarEspagnol) == 0:
         messagebox.showerror("Campos obligatorios", "Es necesario introducir los campos Inglés y Español")
 
     else:
@@ -77,7 +92,6 @@ def insertar():
         messagebox.showinfo("Insertar registro", "Registro insertado con éxito")
 
     conexion.close()
-
 
 
 def borrar():
@@ -90,7 +104,6 @@ def borrar():
 
         respuesta = messagebox.askquestion("Borrar registro", "Estas seguro de querer borrar el registro " + clave)
         if respuesta == "yes":
-
             miCursorRUD.execute("DELETE FROM DICCIONARIO WHERE INGLES='" + clave + "'")
             conexion.commit()
             messagebox.showinfo("Borrar registro", "Registro borrado con éxito")
@@ -101,17 +114,31 @@ def borrar():
 
     conexion.close()
 
+
 def actualizar():
-    pass
+    conexion = sqlite3.connect(DDBB_name)
+    miCursorRUD = conexion.cursor()
+    tabla.delete(*tabla.get_children())
+    datos_introducidos = veIngles.get().strip(), veEspagnol.get().strip(), veEspagnol2.get().strip(), tEjemplo.get(
+        "1.0", "end").strip()
 
-def leerTodos():
-    pass
+    InsertarIngles = veIngles.get()
+    InsertarEspagnol = veEspagnol.get()
 
+    if len(InsertarIngles) == 0 or len(InsertarEspagnol) == 0:
+        messagebox.showerror("Campos obligatorios", "Es necesario introducir los campos Inglés y Español")
 
+    else:
+        miCursorRUD.execute("UPDATE DICCIONARIO SET INGLES=?, ESPAÑOL=?, ESPAÑOL2=?,EJEMPLO=?", (datos_introducidos))
+        conexion.commit()
+        messagebox.showinfo("Modificacion del registro", "Registro modificado con éxito")
+
+    conexion.close()
 
 
 # --------------- Creación ventana principal -----------------------
 root = tkinter.Tk()
+root.title("CRUD Inglés")
 
 # -------------- Creamos menu -----------------------------
 barraMenu = Menu(root)
@@ -132,21 +159,25 @@ barraMenu.add_cascade(label="Ayuda", menu=ayudaMenu)
 
 # --------------- FRAME SUPERIOR -------------------------------------
 frameN = Frame(root)
-frameN.pack()
-frameN.config(pady=10)
+frameN.pack(fill="both")
+frameN.config(pady=10, width=1200)
 
 # ----------- Etiquetas Frame N ---------------
 lnIngles = Label(frameN, text="Inglés")
-lnIngles.grid(row=0, column=0, padx=10, sticky="n")
+lnIngles.grid(row=0, column=0, padx=10, sticky="s")
 
 lnEspagnol = Label(frameN, text="Español")
-lnEspagnol.grid(row=0, column=1, padx=10, sticky="n")
+lnEspagnol.grid(row=0, column=1, padx=10, sticky="s")
 
 lnEspagnol2 = Label(frameN, text="Español 2")
-lnEspagnol2.grid(row=0, column=2, padx=10, sticky="n")
+lnEspagnol2.grid(row=0, column=2, padx=10, sticky="s")
 
 lnEjemplo = Label(frameN, text="Frase de ejemplo")
-lnEjemplo.grid(row=2, column=0, columnspan=3, padx=10, pady=10, sticky="n")
+lnEjemplo.grid(row=2, column=0, columnspan=3, padx=10, pady=10, sticky="s")
+
+img = tkinter.PhotoImage(file="imagen.png")
+lnImagen = Label(frameN, image=img)
+lnImagen.grid(padx=50, pady= 10, row=0, rowspan=5, column=7)
 
 # ---------- entries frame superior -------------------------------------
 
@@ -160,17 +191,17 @@ veEspagnol2 = StringVar()
 
 # vtEjemplo=StringVar() -- esta no hace falta porque no es tipo entry sino tipo Text
 
-eIngles = Entry(frameN, textvariable=veIngles)
-eIngles.grid(row=1, column=0, padx=10, pady=3)
+eIngles = Entry(frameN, textvariable=veIngles, width=35)
+eIngles.grid(row=1, column=0, padx=10)
 eIngles.config(fg="red")
 
-eEspagnol = Entry(frameN, textvariable=veEspagnol)
-eEspagnol.grid(row=1, column=1, padx=10, pady=3)
+eEspagnol = Entry(frameN, textvariable=veEspagnol, width=35)
+eEspagnol.grid(row=1, column=1, padx=10)
 
-eEspagnol2 = Entry(frameN, textvariable=veEspagnol2)
-eEspagnol2.grid(row=1, column=2, padx=10, pady=3)
+eEspagnol2 = Entry(frameN, textvariable=veEspagnol2, width=35)
+eEspagnol2.grid(row=1, column=2, padx=10)
 
-tEjemplo = Text(frameN, width=60, height=5, padx=10, pady=3)
+tEjemplo = Text(frameN, width=82, height=3, padx=10)
 tEjemplo.grid(row=3, columnspan=3, padx=10)
 
 scrollEjemplo = Scrollbar(frameN, command=tEjemplo.yview)
@@ -188,21 +219,27 @@ separadorNC.pack(fill="x", pady=2)
 # ----------------- CREACION FRAME SUR -----------------------------
 
 frameS = Frame(root)
-frameS.pack()
-frameS.config(pady=10, padx=0)
+frameS.pack(fill="both")
+frameS.config(pady=10, padx=0, width=1200)
 
 # ------------- TABLA FRAME SUR ---------------------
-# creación de la tabla
-tabla = ttk.Treeview(frameS, columns=("col1", "col2", "col3", "col4"), show="headings")
-# show headings para que solo muestre encabezados y no el índice #0 que es columna reservada para los índices, que aunque no se vea, está ahi
 
+# show headings para que solo muestre encabezados y no el índice #0 que es columna reservada para los índices, que aunque no se vea, está ahi
+style = ttk.Style()
+style.theme_use("default")  # Seleccionar el tema predeterminado
+
+# Crear un estilo personalizado para el encabezado
+style.configure("Custom.Treeview.Heading", background="#C8E1F0")
+
+#Creacion de tabla
+tabla = ttk.Treeview(frameS, columns=("col1", "col2", "col3", "col4"), show="headings", style="Custom.Treeview")
 
 # Creación de las columnas
 tabla.column("#0", anchor=CENTER)
 tabla.column("col1", anchor=CENTER)
 tabla.column("col2", anchor=CENTER)
 tabla.column("col3", anchor=CENTER)
-tabla.column("col4", anchor=CENTER)
+tabla.column("col4", anchor=CENTER, width=600, minwidth=0, stretch=True)
 
 # Creación de los encabezados de las columnas
 
@@ -211,7 +248,9 @@ tabla.heading("col2", text="Español", anchor=CENTER)
 tabla.heading("col3", text="Español 2", anchor=CENTER)
 tabla.heading("col4", text="Ejemplo", anchor=CENTER)
 
-tabla.pack()
+tabla.tag_configure(tagname='heading', background="#FFFF00")
+
+tabla.pack(side="left", fill="y")
 
 # ----------- Botones Frame N ---------------
 
@@ -231,7 +270,7 @@ bInsertar.grid(row=2, column=5, sticky="e", padx=1)
 bAcutalizar = Button(frameN, width=10, text="Actualizar", command=actualizar)
 bAcutalizar.grid(row=2, column=6, padx=1, sticky="w")
 
-bBorrar = Button(frameN, width=10, text="Borrar", command=borrar)
+bBorrar = Button(frameN, width=10, text="Borrar", command=borrar, bg="#E85856")
 bBorrar.grid(row=1, column=6, sticky="w", padx=1)
 
 bLeerTodos = Button(frameN, width=20, text="Leer todos", command=leerTodos)
